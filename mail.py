@@ -3,13 +3,18 @@ from email.MIMEMultipart import MIMEMultipart
 from email.mime.text import MIMEText
 
 
-class MailSendingSystem:
+class SMTPObject:
+    """
+    SMTPObject serves for connecting to SMTP server
+    and sending mails.
+    """
 
     def __init__(self, server, port, login, password):
-        """Initializes MailSendingSystem 
-        and connects with the SMTP server, 
+        """
+        Initializes SMTP object
+        and connects with the SMTP server,
         also tries to log in.
-        
+
         Args:
         -----
         string: server -- SMTP server address to connect to.
@@ -30,32 +35,36 @@ class MailSendingSystem:
             self.smtpObj.starttls()
             self.smtpObj.login(login, password)
         except smtplib.SMTPHeloError:
-            print "HELO error"
+            print("HELO error")
             return -1
         except smtplib.SMTPAuthenticationError:
-            print "Auth error"
+            print("Auth error")
             return -1
         except smtplib.SMTPException:
-            print "Unknown SMTP error"
+            print("Unknown SMTP error")
             return -1
         except:
-            print "Unknown exception"
+            print("Unknown exception")
             return -1
-            
+
     # Prepare message
-    def create_message(self, subject = "Unknown subject", from_ = self.login, to, msg):    
-        """Creates message MIME object.
-    
+    def create_message(self, to, msg, subject="Unknown subject", from_=None):
+        """
+        Creates message MIME object.
+
         Args:
         -----
-        string: subject -- subject of a mail (defaut "Unknown subject")
-        string: from_ -- sender email adress (default self.login)
         string: to -- target's email
         string: msg -- just message body
+        string: subject -- subject of a mail (defaut "Unknown subject")
+        string: from_ -- sender email adress (default self.login)
 
         Returns:
         --------
-        string: _mail.as_string() -- prepared to be send with SMTP.sendmail()"""    
+        string: _mail.as_string() -- prepared to be send with SMTP.sendmail()
+        """
+        if from_ is None:
+            from_ = self.login
         mail = MIMEMultipart()
         mail['From'] = from_
         mail['To'] = to
@@ -64,41 +73,50 @@ class MailSendingSystem:
         return mail.as_string()
 
     # Sends message
-    def send_messages(self, from_ = self.login, to, msg):
-        """Sends prepared MIME mail.
+    def send_message(self, to, msg, from_=None):
+        """
+        Sends prepared MIME mail.
 
         Args:
         -----
-        string: from_ -- sender's email address (default self.login)
         string: to -- target email address
         string: msg -- prepared mail (can be converted with self.creates())
-        
+        string: from_ -- sender's email address (default self.login)
+
         Returns:
         --------
         Returns -1 in case of failure
         """
+        if from_ is None:
+            from_ = self.login
         try:
-            smtpObj.sendmail(from_, to, msg)
+            self.smtpObj.sendmail(from_, to, msg)
         except smtplib.SMTPHeloError:
-            print "HELLO error"
+            print("HELLO error")
             return -1
         except smtplib.SMTPAuthenticationError:
-            print "Auth error"
+            print("Auth error")
             return -1
         except smtplib.SMTPDataError:
-            print "SMTP Data Error"
+            print("SMTP Data Error")
             return -1
         except smtplib.SMTPSenderRefused:
-            print "Sender refused"
+            print("Sender refused")
             return -1
         except smtplib.SMTPRecipientsRefused:
-            print "Nobody get the mail"
+            print("Nobody get the mail")
             return -1
         except smtplib.SMTPException:
-            print "Unknown SMTP Exception"
+            print("Unknown SMTP Exception")
             return -1
         except:
-            print "Unknown exception"
+            print("Unknown exception")
             return -1
         else:
-            print "Succeed"
+            print("Succeed")
+
+    def __del__(self):
+        """
+        Closes SMTP object.
+        """
+        self.smtpObj.quit()
