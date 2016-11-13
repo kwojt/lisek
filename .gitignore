@@ -1,5 +1,6 @@
-~.pyc
-credentials.py
+*.pyc
+mycred.py
 client_secret.json
 *#*
-~.bak
+*.bak
+*~
