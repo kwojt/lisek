@@ -1,6 +1,8 @@
 import smtplib
-from email.MIMEMultipart import MIMEMultipart
+from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from imapclient import IMAPClient
+from database import Table
 
 
 class SMTPObject:
@@ -120,3 +122,57 @@ class SMTPObject:
         Closes SMTP object.
         """
         self.smtpObj.quit()
+
+
+class IMAPObject:
+    """
+    IMAPObject sets up connection  with IMAP server, download
+    and sort mails, and download data from auto-mails from HTML forms
+    to table.
+    """
+    def __init__(self, s_address, s_login, s_password):
+        """
+        Creates IMAPClient object, connects with server and try to
+        log in.
+
+        Args:
+        -----
+        string: s_address -- server address
+        string: s_login -- login
+        string: s_password -- password
+        """
+        try:
+            self.server = IMAPClient(s_address, use_uid=True, ssl=False)
+            self.server.login(s_login, s_password)
+        except IMAPClient.Error:
+            raise
+
+    def parseAll(self, subject):
+        """
+        Parses all messages on the server.
+        """
+        select_info = self.server.select_folder("INBOX")
+        print('%d messages in INBOX' % select_info[b'EXISTS'])
+
+        messages = self.server.search([b'NOT', b'DELETED'])
+        print("%d messages that aren't deleted" % len(messages))
+
+        table = Table()
+        table.addColumn(subject)
+        response = self.server.fetch(messages, [b'ENVELOPE',
+                                                b'BODY.PEEK[TEXT]'])
+        encoded_subject = subject.encode()
+        for msgid, data in response.items():
+            if data[b'ENVELOPE'].subject == encoded_subject:
+                value = data[b'BODY[TEXT]'][len(subject)+2:-2].decode()
+                table.addRecord([subject, value])
+        return table
+
+
+# Debugging script
+downloader = IMAPObject("imap.lovehard.pl",
+                        "kontakt@lovehard.pl",
+                        "PASSlh2016")
+tabeleczka = downloader.parseAll("[EmailNewSubscriber]")
+tabeleczka.renameColumn("[EmailNewSubscriber]", "address")
+print(tabeleczka.table)

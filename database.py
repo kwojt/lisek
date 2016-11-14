@@ -113,10 +113,11 @@ class Table:
         for field in fields:
             if field[0] not in self.table[0] or field[0] == 'id':
                 raise DBColumnError(field[0])
+        self._lastID = self._lastID + 1
         self.table.append({})
+        self.table[-1]['id'] = self._lastID
         for field in fields:
             self.table[-1][field[0]] = field[1]
-        self._lastID = self._lastID + 1
         return self._lastID
 
         def modifyRecord(self, id, *fields):
@@ -175,11 +176,3 @@ class Table:
             else:
                 return pickle.dumps(self.table)
             pass
-
-
-tabelka = Table()
-print(tabelka.table)
-tabelka.addColumn("email", "sth@sth.com")
-print(tabelka.table)
-# tabelka.deleteColumn("email")
-# print(tabelka._keyTable)
