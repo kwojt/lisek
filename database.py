@@ -152,22 +152,14 @@ class Table:
             self.table[-1][field[0]] = field[1]
         return self._lastID
 
-    def modifyRecord(self, id, *fields):
+    def modifyRecord(self, key, *fields):
         """
-        Raises:
-        -------
-        DBRecordError if tried to modify nonexistent record
+        Modifies records with given key.
         """
-        if not fields:
-            return
-        if id >= len(self.table):
-            raise DBRecordError(id)
-        for field in fields:
-            if field[0] not in self.table[0] or field[0] == 'id':
-                raise DBColumnError(field[0])
-        for field in fields:
-            self.table[id][field[0]] = field[1]
-        pass
+        for record in self.table:
+            if record[key[0]] == key[1]:
+                for field in fields:
+                    record[field[0]] = field[1]
 
     def deleteRecord(self, id):
         """
@@ -240,3 +232,6 @@ class Table:
             self._lastID += 1
             self.table.append(record)
             self.table[-1]['id'] = self._lastID
+
+# TODO
+# - Remove duplicates

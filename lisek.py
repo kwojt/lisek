@@ -4,7 +4,7 @@
 # by kwojt(c)
 #########################
 
-from mail import IMAPObject
+from mail import IMAPObject, SMTPObject
 import pickle
 import os
 # from database import Table  # DEBUG ONLY
@@ -13,6 +13,8 @@ import mycred
 
 # Setting up server objects
 emailDown = IMAPObject(mycred.server, mycred.email, mycred.password)
+emailUp = SMTPObject(mycred.server, mycred.server_port,
+                     mycred.email, mycred.password)
 
 # Parsing subscribers
 if (os.path.isfile("subsEmail.sec")
@@ -20,22 +22,31 @@ if (os.path.isfile("subsEmail.sec")
     subsEmailFile = open("subsEmail.sec", "rb")
     subsEmail = pickle.load(subsEmailFile)
     subsEmailFile.close()
-    subsEmailNew = emailDown.parseNew("[EmailNewSubscriber]")
+    subsEmailNew = emailDown.parseNew("[EmailTest]")
+    subsEmailNew.renameColumn("[EmailTest]", "email")
     subsEmail.mergeTable(subsEmailNew.table)
 else:
-    subsEmail = emailDown.parseAll("[EmailNewSubscriber]")
-    subsEmail.renameColumn("[EmailNewSubscriber]", "email")
+    subsEmail = emailDown.parseAll("[EmailTest]")
+    subsEmail.renameColumn("[EmailTest]", "email")
 
 print("Email subscribers: ", len(subsEmail.table) - 1)
-print(subsEmail.returnColumn("email"))
-# testy = Table()
-# testy.addColumn('email')
-# testy.addRecord(['email', 'foo@bar.net'])
-# testy.addRecord(['email', 'foo2@bar2.net'])
-# print(testy.table)
-# testyMail = emailDown.parseNew("[EmailNewSubscriber]")
-# testyMail.renameColumn("[EmailNewSubscriber]", "email")
-# testy.mergeTable(testyMail.table)
-# print(testy.table)
+
+# Sending message from certain file
+cin = input("Do you want to broadcast message from file (y/n): ")
+if cin == "y" or cin == "yes":
+    cin = input("File directory: \n")
+    msgFile = open(cin, "r")
+    subsEmail.addColumn(cin)
+    print(msgFile.read())
+    users = subsEmail.returnColumn("email")
+    print(users)
+    print("-----------------------------------------------------")
+    for user in users:
+        msg = emailUp.create_message(user, msgFile.read(), "#TEST")
+        if not emailUp.send_message(user, msg):
+            subsEmail.modifyRecord(["email", user], [cin, True])
+
+print(subsEmail.table)
+
 
 # TODO Close files
