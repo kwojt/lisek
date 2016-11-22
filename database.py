@@ -21,6 +21,13 @@ class DBRecordError(Exception):
         self.record = record
 
 
+class DBError(Exception):
+    """
+    General exception passed by module.
+    """
+    pass
+
+
 class Table:
     """
     Class used to create database-like tables.
@@ -120,59 +127,91 @@ class Table:
             self.table[-1][field[0]] = field[1]
         return self._lastID
 
-        def modifyRecord(self, id, *fields):
-            """
-            Raises:
-            -------
-            DBRecordError if tried to modify nonexistent record
-            """
-            if not fields:
-                return
-            if id >= len(self.table):
-                raise DBRecordError(id)
-            for field in fields:
-                if field[0] not in self.table[0] or field[0] == 'id':
-                    raise DBColumnError(field[0])
-            for field in fields:
-                self.table[id][field[0]] = field[1]
-            pass
+    def modifyRecord(self, id, *fields):
+        """
+        Raises:
+        -------
+        DBRecordError if tried to modify nonexistent record
+        """
+        if not fields:
+            return
+        if id >= len(self.table):
+            raise DBRecordError(id)
+        for field in fields:
+            if field[0] not in self.table[0] or field[0] == 'id':
+                raise DBColumnError(field[0])
+        for field in fields:
+            self.table[id][field[0]] = field[1]
+        pass
 
-        def deleteRecord(self, id):
-            """
-            Removes record with given ID.
-            I have no idea how to known what record's ID is, lol
-            You can't delete record 0 though.
+    def deleteRecord(self, id):
+        """
+        Removes record with given ID.
+        I have no idea how to known what record's ID is, lol
+        You can't delete record 0 though.
 
-            Args:
-            -----
-            int: id -- id of a record to delete
+        Args:
+        -----
+        int: id -- id of a record to delete
 
-            Raises:
-            -------
-            DBRecordError with 'record' value 0 if tried to modify key
-            record or id if tried to delete nonexistent record.
-            """
-            if id == 0:
-                raise DBRecordError(0)
-            try:
-                del self.table[id]
-            except IndexError:
-                raise DBRecordError(id)
+        Raises:
+        -------
+        DBRecordError with 'record' value 0 if tried to modify key
+        record or id if tried to delete nonexistent record.
+        """
+        if id == 0:
+            raise DBRecordError(0)
+        try:
+            del self.table[id]
+        except IndexError:
+            raise DBRecordError(id)
 
-        def pickleTable(self, file=None):
-            """
-            Function pickes a table.
+    def pickleTable(self, file=None):
+        """
+        Function pickes a table.
 
-            Args:
-            -----
-            file: [file] -- file object to picke to.
+        Args:
+        -----
+        file: [file] -- file object to picke to.
 
-            Returns:
-            --------
-            String with pickle object if no file was given.
-            """
-            if file:
-                pickle.dump(self.table, file)
-            else:
-                return pickle.dumps(self.table)
-            pass
+        Returns:
+        --------
+        String with pickle object if no file was given.
+        """
+        if file:
+            pickle.dump(self.table, file)
+        else:
+            return pickle.dumps(self.table)
+        pass
+
+    def mergeTable(self, table, ifForce=False):
+        """
+        Merges given table into self.
+        Table must be an instance of Table.table.
+        Pushes None values if certain columns were not filled.
+
+        Args:
+        -----
+        Table: table -- table to merge
+        bool: ifForce -- when set to true, adds new columns, so
+        self.table fits given table
+
+        Raises:
+        -------
+        DBError -- if error occured, for example if tried to merge
+        table with unknown columns without ifForce = true.
+        """
+        # Checking columns compatilibity
+        for column in table[0].keys():
+            if column not in self.table[0]:
+                if ifForce is True:
+                    self.addColumn(column)
+                else:
+                    raise DBError()
+        # Merging
+        iterRecords = iter(table)
+        next(iterRecords)
+        for record in iterRecords:
+            self._lastID += 1
+            self.table.append(record)
+            self.table[-1]['id'] = self._lastID
