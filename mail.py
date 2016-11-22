@@ -96,32 +96,32 @@ class SMTPObject:
             from_ = self.login
         if isinstance(to, str):
             to = [to]
-        try:
-            for address in to:
+        for address in to:
+            try:
                 self.smtpObj.sendmail(from_, address, msg)
-        except smtplib.SMTPHeloError:
-            print("HELLO error")
-            return -1
-        except smtplib.SMTPAuthenticationError:
-            print("Auth error")
-            return -1
-        except smtplib.SMTPDataError:
-            print("SMTP Data Error")
-            return -1
-        except smtplib.SMTPSenderRefused:
-            print("Sender refused")
-            return -1
-        except smtplib.SMTPRecipientsRefused:
-            print("Nobody get the mail")
-            return -1
-        except smtplib.SMTPException:
-            print("Unknown SMTP Exception")
-            return -1
-        except:
-            print("Unknown exception")
-            return -1
-        else:
-            print("Succeed")
+            except smtplib.SMTPHeloError:
+                print("HELLO error, ", address)
+                return -1
+            except smtplib.SMTPAuthenticationError:
+                print("Auth error, ", address)
+                return -1
+            except smtplib.SMTPDataError:
+                print("SMTP Data Error, ", address)
+                return -1
+            except smtplib.SMTPSenderRefused:
+                print("Sender refused, ", address)
+                return -1
+            except smtplib.SMTPRecipientsRefused:
+                print("Nobody get the mail, ", address)
+                return -1
+            except smtplib.SMTPException:
+                print("Unknown SMTP Exception, ", address)
+                return -1
+            except:
+                print("Unknown exception, ", address)
+                return -1
+            else:
+                print("Succeed, ", address)
 
     def __del__(self):
         """
