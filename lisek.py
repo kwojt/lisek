@@ -1,27 +1,41 @@
 #! /usr/bin/env python3
-# Lovehard Management App
+# Lisek Management App
 # 0.0.4
 # by kwojt(c)
 #########################
 
-from imapclient import IMAPClient
+from mail import IMAPObject
+import pickle
+import os
+# from database import Table  # DEBUG ONLY
 # Private settings and credentials
 import mycred
 
-# Getting mail from the server
-mailGet = IMAPClient(mycred.server, use_uid=True, ssl=False)
-mailGet.login(mycred.email, mycred.password)
+# Setting up server objects
+emailDown = IMAPObject(mycred.server, mycred.email, mycred.password)
 
-select_info = mailGet.select_folder("INBOX")
-print('%d messages in INBOX' % select_info[b'EXISTS'])
+# Parsing subscribers
+if (os.path.isfile("subsEmail.sec")
+        and not os.stat("subsEmail.sec").st_size == 0):
+    subsEmailFile = open("subsEmail.sec", "rb")
+    subsEmail = pickle.load(subsEmailFile)
+    subsEmailFile.close()
+    subsEmailNew = emailDown.parseNew("[EmailNewSubscriber]")
+    subsEmail.mergeTable(subsEmailNew.table)
+else:
+    subsEmail = emailDown.parseAll("[EmailNewSubscriber]")
+    subsEmail.renameColumn("[EmailNewSubscriber]", "email")
 
-messages = mailGet.search([b'NOT', b'DELETED'])
-print("%d messages that aren't deleted" % len(messages))
+print("Email subscribers: ", len(subsEmail.table) - 1)
+print(subsEmail.returnColumn("email"))
+# testy = Table()
+# testy.addColumn('email')
+# testy.addRecord(['email', 'foo@bar.net'])
+# testy.addRecord(['email', 'foo2@bar2.net'])
+# print(testy.table)
+# testyMail = emailDown.parseNew("[EmailNewSubscriber]")
+# testyMail.renameColumn("[EmailNewSubscriber]", "email")
+# testy.mergeTable(testyMail.table)
+# print(testy.table)
 
-print()
-print("Messages:")
-response = mailGet.fetch(messages, [b'FLAGS', b'RFC822.SIZE'])
-for msgid, data in response.items():
-    print('   ID %d: %d bytes, flags=%s' % (msgid,
-                                            data[b'RFC822.SIZE'],
-                                            data[b'FLAGS']))
+# TODO Close files

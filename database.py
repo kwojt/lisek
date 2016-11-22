@@ -94,6 +94,31 @@ class Table:
             record.pop(name, None)
         pass
 
+    def returnColumn(self, name):
+        """
+        Returns column with a given name.
+
+        Args:
+        -----
+        string: name -- name of a column
+
+        Returns:
+        --------
+        List with a values in a certain column.
+
+        Raises:
+        -------
+        DBError if there isn't column with a given name in table.
+        """
+        if name not in self.table[0]:
+            raise DBError()
+        values = []
+        iterRecords = iter(self.table)
+        next(iterRecords)
+        for element in iterRecords:
+            values.append(element[name])
+        return values
+
     def addRecord(self, *fields):
         """
         Puts new record in database. Fills not given columns
