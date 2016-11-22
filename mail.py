@@ -69,7 +69,7 @@ class SMTPObject:
             from_ = self.login
         mail = MIMEMultipart()
         mail['From'] = from_
-        if isinstance(to, basestring):
+        if isinstance(to, str):
             mail['To'] = to
         else:
             mail['Bcc'] = to
@@ -94,7 +94,7 @@ class SMTPObject:
         """
         if from_ is None:
             from_ = self.login
-        if isinstance(to, basestring):
+        if isinstance(to, str):
             to = [to]
         try:
             for address in to:
