@@ -84,7 +84,7 @@ class SMTPObject:
 
         Args:
         -----
-        string: to -- target email address
+        string: to -- target email address (can be list of many)
         string: msg -- prepared mail (can be converted with self.creates())
         string: from_ -- sender's email address (default self.login)
 
@@ -94,8 +94,11 @@ class SMTPObject:
         """
         if from_ is None:
             from_ = self.login
+        if isinstance(to, basestring):
+            to = [to]
         try:
-            self.smtpObj.sendmail(from_, to, msg)
+            for address in to:
+                self.smtpObj.sendmail(from_, address, msg)
         except smtplib.SMTPHeloError:
             print("HELLO error")
             return -1
@@ -193,3 +196,6 @@ class IMAPObject:
                 value = data[b'BODY[TEXT]'][len(subject)+2:-2].decode()
                 table.addRecord([subject, value])
         return table
+
+# TODO:
+# - Update docstring
