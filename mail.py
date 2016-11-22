@@ -69,7 +69,10 @@ class SMTPObject:
             from_ = self.login
         mail = MIMEMultipart()
         mail['From'] = from_
-        mail['To'] = to
+        if isinstance(to, basestring):
+            mail['To'] = to
+        else:
+            mail['Bcc'] = to
         mail['Subject'] = subject
         mail.attach(MIMEText(msg, 'plain'))
         return mail.as_string()
@@ -160,6 +163,7 @@ class IMAPObject:
         table = Table()
         table.addColumn(subject)
         response = self.server.fetch(messages, [b'ENVELOPE',
+                                                b'FLAGS',
                                                 b'BODY.PEEK[TEXT]'])
         encoded_subject = subject.encode()
         for msgid, data in response.items():
@@ -168,11 +172,24 @@ class IMAPObject:
                 table.addRecord([subject, value])
         return table
 
+    def parseNew(self, subject):
+        """
+        Parses new messages with given subject on the server
+        """
+        select_info = self.server.select_folder("INBOX")
+        print('%d messages in INBOX' % select_info[b'EXISTS'])
 
-# Debugging script
-downloader = IMAPObject("imap.lovehard.pl",
-                        "kontakt@lovehard.pl",
-                        "PASSlh2016")
-tabeleczka = downloader.parseAll("[EmailNewSubscriber]")
-tabeleczka.renameColumn("[EmailNewSubscriber]", "address")
-print(tabeleczka.table)
+        messages = self.server.search([b'NOT', b'SEEN'])
+        print("%d messages that weren't seen" % len(messages))
+
+        table = Table()
+        table.addColumn(subject)
+        response = self.server.fetch(messages, [b'ENVELOPE',
+                                                b'FLAGS',
+                                                b'BODY.PEEK[TEXT]'])
+        encoded_subject = subject.encode()
+        for msgid, data in response.items():
+            if data[b'ENVELOPE'].subject == encoded_subject:
+                value = data[b'BODY[TEXT]'][len(subject)+2:-2].decode()
+                table.addRecord([subject, value])
+        return table
