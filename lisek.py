@@ -4,49 +4,34 @@
 # by kwojt(c)
 #########################
 
-from mail import IMAPObject, SMTPObject
-import pickle
-import os
 # from database import Table  # DEBUG ONLY
 # Private settings and credentials
 import mycred
+from subssystem import subsSystem
 
-# Setting up server objects
-emailDown = IMAPObject(mycred.server, mycred.email, mycred.password)
-emailUp = SMTPObject(mycred.server, mycred.server_port,
-                     mycred.email, mycred.password)
+print("Setting up.")
 
-# Parsing subscribers
-if (os.path.isfile("subsEmail.sec")
-        and not os.stat("subsEmail.sec").st_size == 0):
-    subsEmailFile = open("subsEmail.sec", "rb")
-    subsEmail = pickle.load(subsEmailFile)
-    subsEmailFile.close()
-    subsEmailNew = emailDown.parseNew("[EmailTest]")
-    subsEmailNew.renameColumn("[EmailTest]", "email")
-    subsEmail.mergeTable(subsEmailNew.table)
-else:
-    subsEmail = emailDown.parseAll("[EmailTest]")
-    subsEmail.renameColumn("[EmailTest]", "email")
+system = subsSystem()
+system.setupSMTP(mycred.server, mycred.email, mycred.password)
+system.setupIMAP(mycred.server, mycred.server_port,
+                 mycred.email, mycred.password)
 
-print("Email subscribers: ", len(subsEmail.table) - 1)
+system.parseBase("[EmailTest]", "email")
 
-# Sending message from certain file
-cin = input("Do you want to broadcast message from file (y/n): ")
-if cin == "y" or cin == "yes":
-    cin = input("File directory: \n")
-    msgFile = open(cin, "r")
-    subsEmail.addColumn(cin)
-    print(msgFile.read())
-    users = subsEmail.returnColumn("email")
-    print(users)
-    print("-----------------------------------------------------")
-    for user in users:
-        msg = emailUp.create_message(user, msgFile.read(), "#TEST")
-        if not emailUp.send_message(user, msg):
-            subsEmail.modifyRecord(["email", user], [cin, True])
+system.broadcastMail()
 
-print(subsEmail.table)
+# while True:
+#     print("Please select one option:")
+#     print("1. Broadcast an email to all subscribers")
+#     print("0. Exit")
+#     cin = -1
+#     while cin != 1 and cin != 0:
+#         cin = input()
+#         if cin == 1:
+#             # subsSystem.broadcast()
+#             pass
+#         elif cin == 0:
+#             break
 
 
 # TODO Close files

@@ -74,7 +74,7 @@ class SMTPObject:
         else:
             mail['Bcc'] = to
         mail['Subject'] = subject
-        mail.attach(MIMEText(msg, 'plain'))
+        mail.attach(MIMEText(msg, 'html'))
         return mail.as_string()
 
     # Sends message

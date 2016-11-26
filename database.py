@@ -161,6 +161,25 @@ class Table:
                 for field in fields:
                     record[field[0]] = field[1]
 
+    def clearDuplicates(self, key):
+        """
+        DO NOT USE!!!
+        NOT READY, GIVES SHIT!!!
+        Remove duplicates by searching in certain 'key' column.
+        May take a while
+
+        Args:
+        -----
+        string: key -- column name
+        """
+        if key not in self.table[0]:
+            raise DBError()
+        # TODO make it better...
+        for record in self.table:
+            for checked in self.table:
+                if record[key] == checked[key]:
+                    del checked
+
     def deleteRecord(self, id):
         """
         Removes record with given ID.
