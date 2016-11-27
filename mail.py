@@ -167,7 +167,7 @@ class IMAPObject:
         table.addColumn(subject)
         response = self.server.fetch(messages, [b'ENVELOPE',
                                                 b'FLAGS',
-                                                b'BODY.PEEK[TEXT]'])
+                                                b'BODY.[TEXT]'])
         encoded_subject = subject.encode()
         for msgid, data in response.items():
             if data[b'ENVELOPE'].subject == encoded_subject:
@@ -189,7 +189,7 @@ class IMAPObject:
         table.addColumn(subject)
         response = self.server.fetch(messages, [b'ENVELOPE',
                                                 b'FLAGS',
-                                                b'BODY.PEEK[TEXT]'])
+                                                b'BODY[TEXT]'])
         encoded_subject = subject.encode()
         for msgid, data in response.items():
             if data[b'ENVELOPE'].subject == encoded_subject:

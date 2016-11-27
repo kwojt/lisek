@@ -1,6 +1,4 @@
 from mail import IMAPObject, SMTPObject
-import pickle
-# import os
 
 
 class subsSystem:
@@ -15,23 +13,13 @@ class subsSystem:
     def setupIMAP(self, server, port, login, password):
         self.emailUp = SMTPObject(server, port, login, password)
 
-    def parseBase(self, subject, keyName):
-        # if (os.path.isfile(keyName+".sec")
-        #         and not os.stat(keyName+".sec").st_size == 0):
-        #     subsBaseFile = open(keyName+".sec", "rb")
-        #     self.subsBase = pickle.load(subsBaseFile)
-        #     subsBaseFile.close()
-        #     subsBaseNew = self.emailDown.parseNew(subject)
-        #     subsBaseNew.renameColumn(subject, keyName)
-        #     self.subsBase.mergeTable(subsBaseNew.table)
-        # else:
-        self.subsBase = self.emailDown.parseAll(subject)
-        self.subsBase.renameColumn(subject, keyName)
-        subsBaseFile = open(keyName+".sec", "wb")
-        pickle.dump(self.subsBase, subsBaseFile,
-                    pickle.HIGHEST_PROTOCOL)
-        subsBaseFile.close()
-        print("Subscribers: ", len(self.subsBase.table) - 1)
+    def parseBase(self):
+        self.subsEmail = self.emailDown.parseAll("[EmailNewSubscriber]")
+        self.subsEmail.renameColumn("[EmailNewSubscriber]", "email")
+        self.subsSMS = self.emailDown.parseAll("[SMSNewSubscriber]")
+        self.subsSMS.renameColumn("[SMSNewSubscriber]", "sms")
+        print("SMS subscribers: ", len(self.subsSMS.table)-1)
+        print("Email subscribers: ", len(self.subsEmail.table)-1)
 
     def broadcastMail(self):
         cin = input("Do you want to broadcast message from file (y/n): ")
@@ -42,12 +30,23 @@ class subsSystem:
             print(msgContent)
             msgFile.close()
             subject = input("Email subject?\n")
-            # Check if email was not send earlier
-            self.subsBase.addColumn(dir)
-            users = self.subsBase.returnColumn("email")
-            print(users)
+            users = self.subsEmail.returnColumn("email")
         print("-----------------------------------------------------")
         for user in users:
             msg = self.emailUp.create_message(user, msgContent, subject)
-            if self.emailUp.send_message(user, msg) != -1:
-                self.subsBase.modifyRecord(["email", user], [dir, True])
+            self.emailUp.send_message(user, msg)
+
+    def phoneNumbersToFile(self):
+        print("Saving users to SendSMSHere.sec")
+        divide = input("How many numbers in group?\n")
+        writeFile = open("SendSMSHere.sec", "wb")
+
+        iteruser = iter(self.subsSMS.table)
+        next(iteruser)
+        for i, user in enumerate(iteruser, 1):
+            if user['sms'] != "":
+                writeFile.write(user['sms']+",\n")
+            if(i % divide) == 0:
+                writeFile.write("-----------------------------------\n")
+
+        print("Users saved.")
