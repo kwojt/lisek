@@ -31,22 +31,24 @@ class subsSystem:
             msgFile.close()
             subject = input("Email subject?\n")
             users = self.subsEmail.returnColumn("email")
+
+        print("\nSending mail to all users")
         print("-----------------------------------------------------")
         for user in users:
             msg = self.emailUp.create_message(user, msgContent, subject)
             self.emailUp.send_message(user, msg)
+        print("Done \n")
 
     def phoneNumbersToFile(self):
         print("Saving users to SendSMSHere.sec")
-        divide = input("How many numbers in group?\n")
-        writeFile = open("SendSMSHere.sec", "wb")
+        divide = int(input("How many numbers in group?\n"))
+        writeFile = open("SendSMSHere.sec", "w")
 
         iteruser = iter(self.subsSMS.table)
         next(iteruser)
         for i, user in enumerate(iteruser, 1):
-            if user['sms'] != "":
-                writeFile.write(user['sms']+",\n")
-            if(i % divide) == 0:
+            writeFile.write(user['sms']+",\n")
+            if divide != 0 and (i % divide) == 0:
                 writeFile.write("-----------------------------------\n")
 
-        print("Users saved.")
+        print("Users saved.\n")

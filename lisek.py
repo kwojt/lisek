@@ -15,23 +15,23 @@ system = subsSystem()
 system.setupSMTP(mycred.server, mycred.email, mycred.password)
 system.setupIMAP(mycred.server, mycred.server_port,
                  mycred.email, mycred.password)
+system.parseBase()
 
-system.parseBase("[EmailTest]", "email")
+print("System ready.\n")
 
-system.broadcastMail()
-
-# while True:
-#     print("Please select one option:")
-#     print("1. Broadcast an email to all subscribers")
-#     print("0. Exit")
-#     cin = -1
-#     while cin != 1 and cin != 0:
-#         cin = input()
-#         if cin == 1:
-#             # subsSystem.broadcast()
-#             pass
-#         elif cin == 0:
-#             break
-
-
-# TODO Close files
+while True:
+    print("Please select one option:")
+    print("=========================")
+    print("1. Broadcast an email to all subscribers")
+    print("2. Download phone numbers to file")
+    print("0. Exit")
+    print("Well, that's it for now. Choose.")
+    cin = -1
+    while cin != 2 and cin != 1 and cin != 0:
+        cin = int(input())
+        if cin == 1:
+            system.broadcastMail()
+        elif cin == 2:
+            system.phoneNumbersToFile()
+    if cin == 0:
+        break

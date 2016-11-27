@@ -157,22 +157,20 @@ class IMAPObject:
         """
         Parses all messages on the server.
         """
-        select_info = self.server.select_folder("INBOX")
-        print('%d messages in INBOX' % select_info[b'EXISTS'])
-
+        self.server.select_folder("INBOX")
         messages = self.server.search([b'NOT', b'DELETED'])
-        print("%d messages that aren't deleted" % len(messages))
 
         table = Table()
         table.addColumn(subject)
         response = self.server.fetch(messages, [b'ENVELOPE',
                                                 b'FLAGS',
-                                                b'BODY.[TEXT]'])
+                                                b'BODY.PEEK[TEXT]'])
         encoded_subject = subject.encode()
         for msgid, data in response.items():
             if data[b'ENVELOPE'].subject == encoded_subject:
                 value = data[b'BODY[TEXT]'][len(subject)+2:-2].decode()
-                table.addRecord([subject, value])
+                if value != "":
+                    table.addRecord([subject, value])
         return table
 
     def parseNew(self, subject):
@@ -189,12 +187,13 @@ class IMAPObject:
         table.addColumn(subject)
         response = self.server.fetch(messages, [b'ENVELOPE',
                                                 b'FLAGS',
-                                                b'BODY[TEXT]'])
+                                                b'BODY.PEEK[TEXT]'])
         encoded_subject = subject.encode()
         for msgid, data in response.items():
             if data[b'ENVELOPE'].subject == encoded_subject:
                 value = data[b'BODY[TEXT]'][len(subject)+2:-2].decode()
-                table.addRecord([subject, value])
+                if value != "":
+                    table.addRecord([subject, value])
         return table
 
 # TODO:
