@@ -12,8 +12,8 @@ from subssystem import subsSystem
 print("Setting up.")
 
 system = subsSystem()
-system.setupSMTP(mycred.server, mycred.email, mycred.password)
-system.setupIMAP(mycred.server, mycred.server_port,
+system.setupIMAP(mycred.server, mycred.email, mycred.password)
+system.setupSMTP(mycred.server, mycred.server_port,
                  mycred.email, mycred.password)
 system.parseBase()
 

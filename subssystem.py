@@ -6,11 +6,11 @@ class subsSystem:
     Subscription management system.
     """
 
-    def setupSMTP(self, server, login, password):
+    def setupIMAP(self, server, login, password):
         self.emailDown = IMAPObject(server, login, password)
         pass
 
-    def setupIMAP(self, server, port, login, password):
+    def setupSMTP(self, server, port, login, password):
         self.emailUp = SMTPObject(server, port, login, password)
 
     def parseBase(self):
