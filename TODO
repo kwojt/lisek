@@ -1,0 +1,9 @@
+Features to add, task to do etc:
+================================
+- In case of failure makes a list of send and unsend emails and
+gives an option to try again
+- Remove certain mail in IMAP
+- "Manage base" menu with option of unsubscribing
+- Remove duplicates
+- Display "Rest of messages in inbox", with option of removing them
+and replying
