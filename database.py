@@ -251,6 +251,3 @@ class Table:
             self._lastID += 1
             self.table.append(record)
             self.table[-1]['id'] = self._lastID
-
-# TODO
-# - Remove duplicates
