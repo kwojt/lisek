@@ -157,20 +157,19 @@ class IMAPObject:
         """
         Parses all messages on the server.
         """
-        self.server.select_folder("INBOX")
-        messages = self.server.search([b'NOT', b'DELETED'])
-
+        encoded_subject = subject.encode()
         table = Table()
         table.addColumn(subject)
-        response = self.server.fetch(messages, [b'ENVELOPE',
-                                                b'FLAGS',
-                                                b'BODY.PEEK[TEXT]'])
-        encoded_subject = subject.encode()
+
+        self.server.select_folder("INBOX")
+        messages = self.server.search([b'NOT', b'DELETED',
+                                       b'SUBJECT', encoded_subject])
+        response = self.server.fetch(messages, [b'BODY[TEXT]'])
+
         for msgid, data in response.items():
-            if data[b'ENVELOPE'].subject == encoded_subject:
-                value = data[b'BODY[TEXT]'][len(subject)+2:-2].decode()
-                if value != "":
-                    table.addRecord([subject, value])
+            value = data[b'BODY[TEXT]'][len(subject)+2:-2].decode()
+            if value != "":
+                table.addRecord([subject, value])
         return table
 
     def parseNew(self, subject):
@@ -196,5 +195,9 @@ class IMAPObject:
                     table.addRecord([subject, value])
         return table
 
-# TODO:
-# - Update docstring
+    def deleteByContent(self, content):
+        """
+        Deletes message with certain content.
+        """
+        # encoded_content = content.encode()
+        pass
